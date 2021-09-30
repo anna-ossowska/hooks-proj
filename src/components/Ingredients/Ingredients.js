@@ -6,8 +6,10 @@ import Search from './Search';
 
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const addIngredientHandler = (ing) => {
+    setIsLoading(true);
     fetch(
       'https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients.json',
       {
@@ -18,6 +20,7 @@ const Ingredients = () => {
     )
       .then((response) => {
         if (response.ok) {
+          setIsLoading(false);
           return response.json();
         }
       })
@@ -32,6 +35,7 @@ const Ingredients = () => {
   }, []);
 
   const removeItemHandler = (id) => {
+    setIsLoading(true);
     fetch(
       `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${id}.json`,
       {
@@ -39,6 +43,7 @@ const Ingredients = () => {
       }
     ).then((response) => {
       if (response.ok) {
+        setIsLoading(false);
         setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
       }
     });
@@ -46,7 +51,10 @@ const Ingredients = () => {
 
   return (
     <div className="App">
-      <IngredientForm onAddIngredient={addIngredientHandler} />
+      <IngredientForm
+        onAddIngredient={addIngredientHandler}
+        loading={isLoading}
+      />
 
       <section>
         <Search onLoadIngredients={loadIngredientsHandler} />
