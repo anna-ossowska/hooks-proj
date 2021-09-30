@@ -2,11 +2,13 @@ import React, { useState, useCallback } from 'react';
 
 import IngredientForm from './IngredientForm';
 import IngredientList from './IngredientList';
+import ErrorModal from '../UI/ErrorModal';
 import Search from './Search';
 
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const addIngredientHandler = (ing) => {
     setIsLoading(true);
@@ -37,20 +39,32 @@ const Ingredients = () => {
   const removeItemHandler = (id) => {
     setIsLoading(true);
     fetch(
-      `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${id}.json`,
+      `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${id}.jso`,
       {
         method: 'DELETE',
       }
-    ).then((response) => {
-      if (response.ok) {
+    )
+      .then((response) => {
+        if (response.ok) {
+          setIsLoading(false);
+          setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
+        }
+      })
+      .catch((err) => {
+        // These two lines run synchronously
+        // But React batches two states together and produces ONE render cycle
+        setError(`Something went wrong. ${err.message}.`);
         setIsLoading(false);
-        setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
-      }
-    });
+      });
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   return (
     <div className="App">
+      {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
       <IngredientForm
         onAddIngredient={addIngredientHandler}
         loading={isLoading}
