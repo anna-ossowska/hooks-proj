@@ -1,12 +1,27 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useReducer } from 'react';
 
 import IngredientForm from './IngredientForm';
 import IngredientList from './IngredientList';
 import ErrorModal from '../UI/ErrorModal';
 import Search from './Search';
 
+const ingredientReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET':
+      return action.ingredients;
+    case 'ADD':
+      return [...state, action.ingredient];
+    case 'DELETE':
+      return state.filter((ing) => ing.id !== action.id);
+    default:
+      throw new Error('Should not get there');
+  }
+};
+
 const Ingredients = () => {
-  const [userIngredients, setUserIngredients] = useState([]);
+  const [userIngredients, dispatch] = useReducer(ingredientReducer, []);
+
+  // const [userIngredients, setUserIngredients] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,18 +43,20 @@ const Ingredients = () => {
       })
       .then((data) => {
         // .name comes from the FireBase
-        setUserIngredients((prev) => [...prev, { id: data.name, ...ing }]);
+        // setUserIngredients((prev) => [...prev, { id: data.name, ...ing }]);
+        dispatch({ type: 'ADD', ingredient: { id: data.name, ...ing } });
       });
   };
 
   const loadIngredientsHandler = useCallback((filteredIngredients) => {
-    setUserIngredients(filteredIngredients);
+    dispatch({ type: 'SET', ingredients: filteredIngredients });
+    // setUserIngredients(filteredIngredients);
   }, []);
 
-  const removeItemHandler = (id) => {
+  const removeItemHandler = (ingredientId) => {
     setIsLoading(true);
     fetch(
-      `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${id}.jso`,
+      `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${ingredientId}.json`,
       {
         method: 'DELETE',
       }
@@ -47,7 +64,8 @@ const Ingredients = () => {
       .then((response) => {
         if (response.ok) {
           setIsLoading(false);
-          setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
+          // setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
+          dispatch({ type: 'DELETE', id: ingredientId });
         }
       })
       .catch((err) => {
