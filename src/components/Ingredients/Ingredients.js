@@ -7,28 +7,6 @@ import Search from './Search';
 const Ingredients = () => {
   const [userIngredients, setUserIngredients] = useState([]);
 
-  // useEffect(() => {
-  //   fetch(
-  //     'https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients.json'
-  //   )
-  //     .then((response) => {
-  //       if (response.ok) {
-  //         return response.json();
-  //       }
-  //     })
-  //     .then((data) => {
-  //       const loadedIngredients = [];
-  //       for (const key in data) {
-  //         loadedIngredients.push({
-  //           id: key,
-  //           title: data[key].title,
-  //           amount: data[key].amount,
-  //         });
-  //       }
-  //       setUserIngredients(loadedIngredients);
-  //     });
-  // }, []);
-
   const addIngredientHandler = (ing) => {
     fetch(
       'https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients.json',
@@ -54,8 +32,16 @@ const Ingredients = () => {
   }, []);
 
   const removeItemHandler = (id) => {
-    const updatedIngredients = userIngredients.filter((ing) => ing.id !== id);
-    setUserIngredients(updatedIngredients);
+    fetch(
+      `https://react-http-92c39-default-rtdb.europe-west1.firebasedatabase.app/ingredients/${id}.json`,
+      {
+        method: 'DELETE',
+      }
+    ).then((response) => {
+      if (response.ok) {
+        setUserIngredients((prev) => prev.filter((ing) => ing.id !== id));
+      }
+    });
   };
 
   return (
